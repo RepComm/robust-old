@@ -9,7 +9,8 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'src/index.html', to: 'index.html' }
+        { from: 'src/index.html', to: 'index.html' },
+        { from: 'src/textures', to: 'textures/' }
       ],
     })
   ],

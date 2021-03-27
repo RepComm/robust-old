@@ -16,7 +16,7 @@ function randomColor (): string {
   return "#" + str;
 }
 
-function getBlockColor (type: number): string {
+export function getBlockColor (type: number): string {
   switch (type) {
     case 1: //stone
       return "#222223";
@@ -69,6 +69,18 @@ export class Chunk extends Object2D {
       y < Chunk.HEIGHT
     );
   }
+  static blockXToChunkIndexX (x: number): number {
+    return Math.floor(x / Chunk.WIDTH);
+  }
+  static blockYToChunkIndexY (y: number): number {
+    return Math.floor(y / Chunk.HEIGHT);
+  }
+  static blockWorldXToBlockChunkX (x: number): number {
+    return x % Chunk.WIDTH;
+  }
+  static blockWorldYToBlockChunkY (y: number): number {
+    return y % Chunk.HEIGHT;
+  }
   setIndex (x: number, y: number): this {
     this.indexX = x;
     this.indexY = y;
@@ -92,6 +104,10 @@ export class Chunk extends Object2D {
   }
   getBlockFromIndex (index: number, out: Block) {
     out.type = this.data[index * Chunk.BYTES_PER_BLOCK];
+  }
+  breakBlock (localX: number, localY: number) {
+    this.renderBlock.type = 0;
+    this.setBlock(localX, localY, this.renderBlock);
   }
   setBlock(localX: number, localY: number, block: Block) {
     this.setBlockFromIndex(Chunk.getBlockIndex(localX, localY), block);

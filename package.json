@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@repcomm/exponent-ts": "^1.1.4",
+    "@repcomm/gameinput-ts": "^1.9.5",
     "@repcomm/scenario2d": "^1.0.19"
   }
 }

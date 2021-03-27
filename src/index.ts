@@ -1,10 +1,11 @@
 
 import { runOnce, EXPONENT_CSS_STYLES, Drawing, Panel, get } from "@repcomm/exponent-ts";
+import { GameInput } from "@repcomm/gameinput-ts";
 
-import { Scene2D } from "@repcomm/scenario2d";
+import { Scene2D, Vec2 } from "@repcomm/scenario2d";
 import { ParticleSystem } from "./particle/particle";
 import { Block } from "./voxel/block";
-import { Chunk } from "./voxel/chunk";
+import { Chunk, getBlockColor } from "./voxel/chunk";
 import { World } from "./voxel/world";
 
 runOnce();
@@ -29,7 +30,29 @@ const container = new Panel()
 const renderer = new Drawing({alpha: false})
 .setId("canvas")
 .setHandlesResize(true)
+.setStyleItem("cursor", "url(\"./textures/crosshair_0.svg\"), auto")
 .mount(container);
+
+const input = GameInput.get();
+function setupInput () {
+  input.createAxis("walk")
+  .addInfluence({
+    keys: ["a"],
+    value: -1
+  }).addInfluence({
+    keys: ["d"],
+    value: 1
+  });
+  input.createButton("jump")
+  .addInfluence({
+    keys: [" "]
+  });
+  input.createButton("break")
+  .addInfluence({
+    mouseButtons: [0]
+  });
+}
+setupInput();
 
 const BLOCK_SIZE_PX = 32;
 
@@ -43,27 +66,58 @@ world.loadChunk(1, 0);
 
 scene.add(world);
 
-let ps = new ParticleSystem();
-ps.getTransform().position.set(12, 6);
-ps.settings.lifespan = 2000;
-scene.add(ps);
-console.log(ps);
+let psBreakBlock = new ParticleSystem();
+psBreakBlock.settings = {
+  draw: (ctx, particle)=>{
+    ctx.translate(-0.5, -0.5);
+    ctx.fillStyle = getBlockColor(particle.meta||-1);
+    ctx.fillRect(0, 0, 1, 1);
+  },
+  lifespan: 250,
+  rotationOverLifetime: 0,
+  rotationStart: 0,
+  scaleOverLifetime: -0.5,
+  scaleStart: 1,
+  speedOverLifetime: 0,
+  speedStart: 0
+};
+scene.add(psBreakBlock);
 
-setInterval(()=>{
-  for (let i=0; i<25; i++) {
-    ps.spawnParticle(
-      0,
-      0,
-      Math.random()*2-1,
-      Math.random()*2-1
-    );
-  }
-}, 2000);
+const renderMouseVec = new Vec2();
+function calculateRenderMouseVec () {
+  renderMouseVec.set(
+    input.raw.getPointerX(),
+    input.raw.getPointerY()
+  );
+  renderMouseVec.divScalar(scene.transform.scale);
+}
+
+const breakBlockCoords = new Vec2();
 
 renderer.addRenderPass((ctx, drawing)=>{
   scene.render(ctx);
   ctx.strokeStyle = "#ffffff";
   ctx.strokeRect(0, 0, drawing.width, drawing.height);
+
+  calculateRenderMouseVec();
+
+  if (input.getButtonValue("break")) {
+    breakBlockCoords.set(
+      Math.floor(renderMouseVec.x),
+      Math.floor(renderMouseVec.y)
+    );
+
+    psBreakBlock.spawnParticle(
+      breakBlockCoords.x+0.5,
+      breakBlockCoords.y+0.5,
+      0, 0, 1
+    );
+
+    world.breakBlock(
+      breakBlockCoords.x,
+      breakBlockCoords.y
+    );
+  }
 });
 
 setInterval(()=>{

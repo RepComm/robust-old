@@ -68,4 +68,33 @@ export class World extends Object2D {
     this.setChunkActivated(chunk);
     return chunk;
   }
+  /**If chunk is not loaded, returns null
+   * @param x 
+   * @param y 
+   * @returns chunk or null
+   */
+  getChunk (x: number, y: number): Chunk {
+    for (let chunk of this.chunks) {
+      if (chunk.getIndexX() === x && chunk.getIndexY() === y) return chunk;
+    }
+    return null;
+  }
+  /**Break a block in the world
+   * If the chunk isn't loaded, nothing will happen
+   * @param x 
+   * @param y 
+   * @returns true if successful, false if chunk wasn't loaded
+   */
+  breakBlock (x: number, y: number): boolean {
+    let chunk = this.getChunk(
+      Chunk.blockXToChunkIndexX(x),
+      Chunk.blockYToChunkIndexY(y)
+    );
+    if (!chunk) return false;
+    chunk.breakBlock(
+      Chunk.blockWorldXToBlockChunkX(x),
+      Chunk.blockWorldYToBlockChunkY(y)
+    );
+    return true;
+  }
 }

@@ -5,6 +5,7 @@ export interface ParticleData {
   timeStart: number;
   position: Vec2;
   velocity: Vec2;
+  meta: any;
 }
 
 export interface ParticleDraw {
@@ -63,7 +64,7 @@ export class ParticleSystem extends Object2D {
 
     this.particleVelocity = new Vec2();
   }
-  spawnParticle (x: number, y: number, vx: number = 0, vy: number = 0): boolean {
+  spawnParticle (x: number, y: number, vx: number = 0, vy: number = 0, meta: any = undefined): boolean {
     let selected: ParticleData;
     let first: ParticleData;
 
@@ -80,7 +81,8 @@ export class ParticleSystem extends Object2D {
           alive: true,
           position: new Vec2(),
           velocity: new Vec2(),
-          timeStart: 0
+          timeStart: 0,
+          meta: undefined
         };
         this.particles.push(selected);
       }
@@ -92,6 +94,7 @@ export class ParticleSystem extends Object2D {
     selected.alive = true;
     selected.position.set(x, y);
     selected.velocity.set(vx, vy);
+    selected.meta = meta;
     return true;
   }
   spawnParticleVecs (pos: Vec2, vel: Vec2): boolean {
