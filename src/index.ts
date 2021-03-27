@@ -8,6 +8,9 @@ import { Block } from "./voxel/block";
 import { Chunk, getBlockColor } from "./voxel/chunk";
 import { World } from "./voxel/world";
 
+import { Track } from "./anim/anim";
+import { ColorTrack } from "./math/color";
+
 runOnce();
 
 EXPONENT_CSS_STYLES.mount(document.head);
@@ -74,9 +77,9 @@ psBreakBlock.settings = {
     ctx.fillRect(0, 0, 1, 1);
   },
   lifespan: 250,
-  rotationOverLifetime: 0,
+  rotationOverLifetime: 1,
   rotationStart: 0,
-  scaleOverLifetime: -0.5,
+  scaleOverLifetime: -1,
   scaleStart: 1,
   speedOverLifetime: 0,
   speedStart: 0
@@ -92,12 +95,23 @@ function calculateRenderMouseVec () {
   renderMouseVec.divScalar(scene.transform.scale);
 }
 
+const skyColorDelay = 8000;
+const skyColorTrack = new ColorTrack();
+skyColorTrack.setAtTimeRGBA(0*skyColorDelay, 0, 0, 0);
+skyColorTrack.setAtTimeRGBA(1*skyColorDelay, 255, 0, 0);
+skyColorTrack.setAtTimeRGBA(2*skyColorDelay, 0, 255, 0);
+skyColorTrack.setAtTimeRGBA(3*skyColorDelay, 0, 0, 255);
+skyColorTrack.setAtTimeRGBA(4*skyColorDelay, 0, 0, 0);
+
 const breakBlockCoords = new Vec2();
 
 renderer.addRenderPass((ctx, drawing)=>{
+  skyColorTrack.render(Date.now()%skyColorTrack.duration);
+
+  ctx.fillStyle = skyColorTrack.toString();
+  ctx.fillRect(0, 0, drawing.width, drawing.height);
+  
   scene.render(ctx);
-  ctx.strokeStyle = "#ffffff";
-  ctx.strokeRect(0, 0, drawing.width, drawing.height);
 
   calculateRenderMouseVec();
 
