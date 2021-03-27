@@ -45,12 +45,20 @@ scene.add(world);
 
 let ps = new ParticleSystem();
 ps.getTransform().position.set(12, 6);
+ps.settings.lifespan = 2000;
 scene.add(ps);
 console.log(ps);
 
 setInterval(()=>{
-  ps.spawnParticle(Math.random()*2, Math.random()*2);
-}, 1000/8);
+  for (let i=0; i<25; i++) {
+    ps.spawnParticle(
+      0,
+      0,
+      Math.random()*2-1,
+      Math.random()*2-1
+    );
+  }
+}, 2000);
 
 renderer.addRenderPass((ctx, drawing)=>{
   scene.render(ctx);

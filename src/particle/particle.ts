@@ -4,10 +4,11 @@ export interface ParticleData {
   alive: boolean;
   timeStart: number;
   position: Vec2;
+  velocity: Vec2;
 }
 
 export interface ParticleDraw {
-  (ctx: CanvasRenderingContext2D): void;
+  (ctx: CanvasRenderingContext2D, particle: ParticleData): void;
 }
 
 export interface ParticleSettings {
@@ -35,6 +36,7 @@ export class ParticleSystem extends Object2D {
   private particleEnlapsed: number;
   private particleAlongLifespan: number;
   private particleScale: number;
+  private particleVelocity: Vec2;
 
   private maxParticles: number;
 
@@ -58,8 +60,10 @@ export class ParticleSystem extends Object2D {
       speedOverLifetime: 0,
       speedStart: 0
     };
+
+    this.particleVelocity = new Vec2();
   }
-  spawnParticle (x: number = 0, y: number = 0): boolean {
+  spawnParticle (x: number, y: number, vx: number = 0, vy: number = 0): boolean {
     let selected: ParticleData;
     let first: ParticleData;
 
@@ -75,6 +79,7 @@ export class ParticleSystem extends Object2D {
         selected = {
           alive: true,
           position: new Vec2(),
+          velocity: new Vec2(),
           timeStart: 0
         };
         this.particles.push(selected);
@@ -86,7 +91,11 @@ export class ParticleSystem extends Object2D {
     selected.timeStart = Date.now();
     selected.alive = true;
     selected.position.set(x, y);
+    selected.velocity.set(vx, vy);
     return true;
+  }
+  spawnParticleVecs (pos: Vec2, vel: Vec2): boolean {
+    return this.spawnParticle(pos.x, pos.y, vel.x, vel.y);
   }
   render(ctx: CanvasRenderingContext2D): this {
     this.preRender(ctx);
@@ -115,8 +124,11 @@ export class ParticleSystem extends Object2D {
       (this.settings.scaleOverLifetime*this.particleAlongLifespan);
 
       ctx.scale(this.particleScale, this.particleScale);
+      
+      this.particleVelocity.copy(particle.velocity);
+      particle.position.add(this.particleVelocity);
 
-      this.settings.draw(ctx);
+      this.settings.draw(ctx, particle);
 
       ctx.restore();
     }
