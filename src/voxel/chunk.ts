@@ -3,7 +3,9 @@ import { Object2D, Vec2 } from "@repcomm/scenario2d";
 import { Block } from "./block";
 import { _1dTo2dX, _1dTo2dY, _2dTo1d } from "../math/general";
 
-import { Intersectable } from "../intersectable";
+import { Intersectable } from "../physics/intersectable";
+import { BoxList } from "../physics/boxlist";
+import { AABB } from "../physics/aabb";
 
 function randomColor (): string {
   let str = Math.floor(Math.random() * 0xffffffff).toString(16);
@@ -36,11 +38,18 @@ export class Chunk extends Object2D {
 
   private data: Uint8Array;
   private renderBlock: Block;
+  private collisionBlock: Block;
   private indexX: number;
   private indexY: number;
 
+  private boxlist: BoxList;
+  private debugCollision: boolean;
+  
   constructor () {
     super();
+    this.boxlist = new BoxList();
+    this.debugCollision = true;
+
     this.data = new Uint8Array(
       Chunk.WIDTH *
       Chunk.HEIGHT *
@@ -48,6 +57,7 @@ export class Chunk extends Object2D {
     );
 
     this.renderBlock = new Block();
+    this.collisionBlock = new Block();
   }
   static getBlockIndex (x: number, y: number): number {
     return _2dTo1d(x, y, Chunk.WIDTH);
@@ -141,11 +151,52 @@ export class Chunk extends Object2D {
         ctx.fillRect(x, y, 1, 1);
       }
     }
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 0.01;
+    for (let box of this.boxlist.boxes) {
+      ctx.strokeRect(
+        box.position.x,
+        box.position.y,
+        box.halfExtents.x*2,
+        box.halfExtents.y*2
+      );
+    }
     
     this.renderChildren(ctx);
     this.postRender(ctx);
 
     return this;
+  }
+  calculateCollision () {
+    //reset collision
+    this.boxlist.clear();
+
+    let box: AABB;
+
+    for (let x=0; x<Chunk.WIDTH; x++) {
+      for (let y=0; y<Chunk.HEIGHT; y++) {
+        //calculate current block
+        this.getBlock(x, y, this.collisionBlock);
+
+        //If this block has collision
+        if (this.collisionBlock.type !== 0) {
+          //If we need a separate collision box
+          if (!box) {
+            box = this.boxlist.boxAt(x, y, 1, 1);
+          } else {
+            //otherwise extend the last one (it gets reset for blocks with no collision)
+            box.halfExtents.y +=0.5;
+          }
+        //If the block has no collision
+        } else {
+          //reset box so we'll need a new one in future in this column
+          box = undefined;
+        }
+      }
+      //reset block at end
+      box = undefined;
+    }
   }
 }
 Chunk.WIDTH = 16;

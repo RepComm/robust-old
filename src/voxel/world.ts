@@ -112,8 +112,8 @@ export class World extends Object2D {
         ctx.fillStyle = getBlockColor(particle.meta||-1);
         ctx.fillRect(0, 0, 1, 1);
       },
-      lifespan: 250,
-      rotationOverLifetime: 1,
+      lifespan: 400,
+      rotationOverLifetime: 0.2,
       rotationStart: 0,
       scaleOverLifetime: -1,
       scaleStart: 1,
@@ -167,6 +167,7 @@ export class World extends Object2D {
         chunk.setBlock(x, y, this.generateBlock);
       }
     }
+    chunk.calculateCollision();
     return this;
   }
   loadChunk (x: number, y: number): Chunk {
@@ -258,7 +259,8 @@ export class World extends Object2D {
       y+0.5,
       0, 0, this.setBlockPrevious.type
     );
-
+    
+    this.cachedChunk.calculateCollision();
     return true;
   }
   clearWeather (): this {

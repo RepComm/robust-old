@@ -94,8 +94,8 @@ skyColorTrack.setAtTimeRGBA(1*skyColorDelay, 71, 78, 100);
 skyColorTrack.setAtTimeRGBA(2*skyColorDelay, 32, 22, 28);
 skyColorTrack.setAtTimeRGBA(3*skyColorDelay, 50, 53, 66);
 
-const breakBlockCoords = new Vec2();
-
+const mouseBlockCoords = new Vec2();
+const mouseRadius = 4;
 renderer.addRenderPass((ctx, drawing)=>{
   skyColorTrack.render(Date.now()%skyColorTrack.duration);
 
@@ -107,16 +107,20 @@ renderer.addRenderPass((ctx, drawing)=>{
   calculateRenderMouseVec();
 
   if (input.getButtonValue("break")) {
-    breakBlockCoords.set(
+    mouseBlockCoords.set(
       Math.floor(renderMouseVec.x),
       Math.floor(renderMouseVec.y)
     );
     
+    for (let lx=0; lx<mouseRadius; lx++) {
+      for (let ly=0; ly<mouseRadius; ly++) {
+        world.breakBlock(
+          Math.floor(mouseBlockCoords.x + lx - (mouseRadius/2)),
+          Math.floor(mouseBlockCoords.y + ly - (mouseRadius/2))
+        );
+      }
+    }
     
-    world.breakBlock(
-      breakBlockCoords.x,
-      breakBlockCoords.y
-    );
   }
 });
 
