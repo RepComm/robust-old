@@ -6,10 +6,11 @@ import { Scene2D, Vec2 } from "@repcomm/scenario2d";
 import { ParticleSystem } from "./particle/particle";
 import { Block } from "./voxel/block";
 import { Chunk, getBlockColor } from "./voxel/chunk";
-import { World } from "./voxel/world";
+import { World, WorldBlockEvent } from "./voxel/world";
 
 import { Track } from "./anim/anim";
 import { ColorTrack } from "./math/color";
+import { EventDispatcher } from "./events/event";
 
 runOnce();
 
@@ -29,6 +30,12 @@ const body = new Panel()
 const container = new Panel()
 .setId("container")
 .mount(document.body);
+
+const eventDispatcher = EventDispatcher.get();
+// eventDispatcher.listen("block", (evt: WorldBlockEvent)=> {
+//   // console.log("[Block]", evt);
+//   if (Math.random() > 0.5) return true;
+// });
 
 const renderer = new Drawing({alpha: false})
 .setId("canvas")
@@ -71,23 +78,6 @@ scene.add(world);
 
 world.setWeather("rainy", true);
 
-let psBreakBlock = new ParticleSystem();
-psBreakBlock.settings = {
-  draw: (ctx, particle)=>{
-    ctx.translate(-0.5, -0.5);
-    ctx.fillStyle = getBlockColor(particle.meta||-1);
-    ctx.fillRect(0, 0, 1, 1);
-  },
-  lifespan: 250,
-  rotationOverLifetime: 1,
-  rotationStart: 0,
-  scaleOverLifetime: -1,
-  scaleStart: 1,
-  speedOverLifetime: 0,
-  speedStart: 0
-};
-scene.add(psBreakBlock);
-
 const renderMouseVec = new Vec2();
 function calculateRenderMouseVec () {
   renderMouseVec.set(
@@ -120,12 +110,6 @@ renderer.addRenderPass((ctx, drawing)=>{
     breakBlockCoords.set(
       Math.floor(renderMouseVec.x),
       Math.floor(renderMouseVec.y)
-    );
-
-    psBreakBlock.spawnParticle(
-      breakBlockCoords.x+0.5,
-      breakBlockCoords.y+0.5,
-      0, 0, 1
     );
 
     world.breakBlock(

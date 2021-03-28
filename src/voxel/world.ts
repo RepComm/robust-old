@@ -1,8 +1,19 @@
 
 import { Object2D } from "@repcomm/scenario2d";
 import { Block } from "./block";
-import { Chunk } from "./chunk";
+import { Chunk, getBlockColor } from "./chunk";
 import { ParticleSettings, ParticleSystem } from "../particle/particle";
+import { EventDispatcher, RobustEvent } from "../events/event";
+
+const eventDispatcher = EventDispatcher.get();
+
+export interface WorldBlockEvent extends RobustEvent {
+  type: "block";
+  world: World;
+  chunk: Chunk;
+  currentBlock: Block;
+  previousBlock: Block;
+}
 
 export interface WeatherMode {
   useParticles: boolean;
@@ -19,11 +30,21 @@ export class World extends Object2D {
   private weatherMode: WeatherMode;
   private weatherModes: Map<string, WeatherMode>;
 
+  //TODO - replace will pool?
+  private setBlockCurrent: Block;
+  private setBlockPrevious: Block;
+  private cachedChunk: Chunk;
+
+  private psBlockSet: ParticleSystem;
+
   constructor () {
     super();
     this.chunks = new Set();
     this.inactiveChunks = new Set();
     this.generateBlock = new Block();
+
+    this.setBlockPrevious = new Block();
+    this.setBlockCurrent = new Block();
 
     this.psWeather = new ParticleSystem();
     this.add(this.psWeather);
@@ -84,6 +105,22 @@ export class World extends Object2D {
       }
     });
 
+    this.psBlockSet = new ParticleSystem();
+    this.psBlockSet.settings = {
+      draw: (ctx, particle)=>{
+        ctx.translate(-0.5, -0.5);
+        ctx.fillStyle = getBlockColor(particle.meta||-1);
+        ctx.fillRect(0, 0, 1, 1);
+      },
+      lifespan: 250,
+      rotationOverLifetime: 1,
+      rotationStart: 0,
+      scaleOverLifetime: -1,
+      scaleStart: 1,
+      speedOverLifetime: 0,
+      speedStart: 0
+    };
+    this.add(this.psBlockSet);
   }
   createChunk (): Chunk {
     let result = new Chunk();
@@ -150,22 +187,78 @@ export class World extends Object2D {
     }
     return null;
   }
-  /**Break a block in the world
-   * If the chunk isn't loaded, nothing will happen
+  /**Same as getChunk, but it puts the chunk reference into cachedChunk internal var
+   * Returns true if chunk is loaded
    * @param x 
    * @param y 
-   * @returns true if successful, false if chunk wasn't loaded
+   * @returns 
    */
-  breakBlock (x: number, y: number): boolean {
-    let chunk = this.getChunk(
+  cacheChunk (x: number, y: number): boolean {
+    this.cachedChunk = this.getChunk(
       Chunk.blockXToChunkIndexX(x),
       Chunk.blockYToChunkIndexY(y)
     );
-    if (!chunk) return false;
-    chunk.breakBlock(
+    return this.cachedChunk !== undefined && this.cachedChunk !== null;
+  }
+  getCachedChunk (): Chunk {
+    return this.cachedChunk;
+  }
+  /**Break a block in the world
+   * Returns false if cancelled or otherwise could not set block
+   * @param x 
+   * @param y 
+   * @returns true if successful
+   */
+  breakBlock (x: number, y: number): boolean {
+    this.setBlockCurrent.type = 0;
+    return this.setBlock(x, y, this.setBlockCurrent);
+  }
+  /**Gets a block from loaded chunks, puts data into `out` block
+   * Returns true if successful, false if chunk not loaded
+   * @param x 
+   * @param y 
+   * @param out 
+   */
+  getBlock (x: number, y: number, out: Block): boolean {
+    if (!this.cacheChunk(x, y)) return false;
+    this.cachedChunk.getBlock(
       Chunk.blockWorldXToBlockChunkX(x),
-      Chunk.blockWorldYToBlockChunkY(y)
+      Chunk.blockWorldYToBlockChunkY(y),
+      out
     );
+    out.worldX = x;
+    out.worldY = y;
+    return true;
+  }
+  /**Returns false if cancelled or otherwise couldn't set block*/
+  setBlock (x: number, y: number, block: Block, doEvent: boolean = true): boolean {
+    this.setBlockCurrent.copy(block);
+
+    if (!this.getBlock(x, y, this.setBlockPrevious)) return false;
+    
+    //If blocks are the same, don't do all that processing..
+    if (this.setBlockPrevious.equalsBlockData(block)) return false;
+
+    if (doEvent) {
+      if (eventDispatcher.fire({
+        type: "block",
+        currentBlock: this.setBlockCurrent,
+        previousBlock: this.setBlockPrevious
+      } as WorldBlockEvent)) {
+        return false; //cancel
+      }
+    }
+
+    //Use index method as it is most efficient
+    this.cachedChunk.setBlockFromIndex(this.setBlockPrevious.index, this.setBlockCurrent);
+
+    //Play particle
+    this.psBlockSet.spawnParticle(
+      x+0.5,
+      y+0.5,
+      0, 0, this.setBlockPrevious.type
+    );
+
     return true;
   }
   clearWeather (): this {

@@ -101,9 +101,17 @@ export class Chunk extends Object2D {
       Chunk.getBlockIndex(localX, localY),
       out
     );
+    out.chunkX = localX;
+    out.chunkY = localY;
   }
+  /**Writes only type, and index to `out`
+   * @param index 
+   * @param out 
+   */
   getBlockFromIndex (index: number, out: Block) {
     out.type = this.data[index * Chunk.BYTES_PER_BLOCK];
+    //TODO - add other material data here
+    out.index = index;
   }
   breakBlock (localX: number, localY: number) {
     this.renderBlock.type = 0;
