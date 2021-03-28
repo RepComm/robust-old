@@ -111,7 +111,8 @@ renderer.addRenderPass((ctx, drawing)=>{
       Math.floor(renderMouseVec.x),
       Math.floor(renderMouseVec.y)
     );
-
+    
+    
     world.breakBlock(
       breakBlockCoords.x,
       breakBlockCoords.y

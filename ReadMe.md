@@ -11,3 +11,4 @@ Physics engine will be a custom one since others are trash.
 - Chunks are 16x16 blocks
 - AABB is not implemented as a class, but rather as a set of functions
 
+![img](./example.gif)
