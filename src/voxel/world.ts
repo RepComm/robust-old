@@ -1,6 +1,13 @@
+
 import { Object2D } from "@repcomm/scenario2d";
 import { Block } from "./block";
 import { Chunk } from "./chunk";
+import { ParticleSettings, ParticleSystem } from "../particle/particle";
+
+export interface WeatherMode {
+  useParticles: boolean;
+  particleSettings: ParticleSettings;
+}
 
 export class World extends Object2D {
   private chunks: Set<Chunk>;
@@ -8,11 +15,75 @@ export class World extends Object2D {
 
   private generateBlock: Block;
 
+  private psWeather: ParticleSystem;
+  private weatherMode: WeatherMode;
+  private weatherModes: Map<string, WeatherMode>;
+
   constructor () {
     super();
     this.chunks = new Set();
     this.inactiveChunks = new Set();
     this.generateBlock = new Block();
+
+    this.psWeather = new ParticleSystem();
+    this.add(this.psWeather);
+
+    this.weatherModes = new Map();
+
+    this.addWeatherMode("rainy", {
+      useParticles: true,
+      particleSettings: {
+        draw: (ctx, particle)=>{
+          ctx.fillStyle = "#313a4f";
+          ctx.fillRect(0, 0, 0.05, 1.2);
+        },
+        lifespan: 1000,
+        rotationOverLifetime: 0,
+        rotationStart: 0.2,
+        scaleOverLifetime: -0.2,
+        scaleStart: 1,
+        speedOverLifetime: 0,
+        speedStart: 0,
+
+        spawnAuto: true,
+        spawnRate: 4,
+        spawnInterval: 250,
+        spawnGenerator: (ps)=>{
+          ps.spawnParticle(
+            Math.random()*32, 0,
+            -0.1, 0.4+(Math.random()/3)
+          );
+        }
+      }
+    });
+
+    this.addWeatherMode("snowy", {
+      useParticles: true,
+      particleSettings: {
+        draw: (ctx, particle)=>{
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, 0.05, 0.05);
+        },
+        lifespan: 2000,
+        rotationOverLifetime: 0.1,
+        rotationStart: 0,
+        scaleOverLifetime: -0.5,
+        scaleStart: 1,
+        speedOverLifetime: 0,
+        speedStart: 0,
+
+        spawnAuto: true,
+        spawnRate: 8,
+        spawnInterval: 250,
+        spawnGenerator: (ps)=>{
+          ps.spawnParticle(
+            Math.random()*32, 0,
+            0, 0.1+(Math.random()/4)
+          );
+        }
+      }
+    });
+
   }
   createChunk (): Chunk {
     let result = new Chunk();
@@ -96,5 +167,21 @@ export class World extends Object2D {
       Chunk.blockWorldYToBlockChunkY(y)
     );
     return true;
+  }
+  clearWeather (): this {
+    this.psWeather.setEnabled(false);
+    this.weatherMode = undefined;
+    return this;
+  }
+  setWeather (id: string, enabled: boolean = true): this {
+    this.weatherMode = this.weatherModes.get(id);
+    if (!this.weatherMode) return this;
+    this.psWeather.settings = this.weatherMode.particleSettings;
+    if (enabled) this.psWeather.setEnabled(true);
+    return this;
+  }
+  addWeatherMode (id: string, mode: WeatherMode): this {
+    this.weatherModes.set(id, mode);
+    return this;
   }
 }

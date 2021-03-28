@@ -12,6 +12,10 @@ export interface ParticleDraw {
   (ctx: CanvasRenderingContext2D, particle: ParticleData): void;
 }
 
+export interface ParticleSpawnGenerator {
+  (ps: ParticleSystem)
+}
+
 export interface ParticleSettings {
   lifespan: number;
   
@@ -25,9 +29,19 @@ export interface ParticleSettings {
 
   speedStart: number;
   speedOverLifetime: number;
+
+  /**Spawn automatically - defaults to false, use spawnParticle()*/
+  spawnAuto?: boolean;
+  /**Number of particles spawned per spawn event*/
+  spawnRate?: number;
+  /**Time between spawn events*/
+  spawnInterval?: number;
+  /**A callback responsible for populating particles, called automatically*/
+  spawnGenerator?: ParticleSpawnGenerator;
 }
 
 export class ParticleSystem extends Object2D {
+  private enabled: boolean;
   private particles: Array<ParticleData>;
 
   settings: ParticleSettings;
@@ -41,8 +55,12 @@ export class ParticleSystem extends Object2D {
 
   private maxParticles: number;
 
+  //The last time auto spawn interval fired
+  private autoSpawnLastTime: number;
+
   constructor () {
     super();
+    this.enabled = true;
     this.particles = new Array();
     this.timeNow = 0;
 
@@ -64,7 +82,15 @@ export class ParticleSystem extends Object2D {
 
     this.particleVelocity = new Vec2();
   }
+  isEnabled (): boolean {
+    return this.enabled;
+  }
+  setEnabled (enabled: boolean = true): this {
+    this.enabled = enabled;
+    return this;
+  }
   spawnParticle (x: number, y: number, vx: number = 0, vy: number = 0, meta: any = undefined): boolean {
+    if (!this.enabled) return false;
     let selected: ParticleData;
     let first: ParticleData;
 
@@ -100,10 +126,20 @@ export class ParticleSystem extends Object2D {
   spawnParticleVecs (pos: Vec2, vel: Vec2): boolean {
     return this.spawnParticle(pos.x, pos.y, vel.x, vel.y);
   }
+  performAutoSpawn () {
+    if (this.timeNow - this.autoSpawnLastTime < this.settings.spawnInterval) return;
+    this.autoSpawnLastTime = this.timeNow;
+
+    for (let i=0; i<this.settings.spawnRate; i++) {
+      this.settings.spawnGenerator(this);
+    }
+  }
   render(ctx: CanvasRenderingContext2D): this {
+    if (!this.enabled) return this;
+    this.timeNow = Date.now();
+    if (this.settings.spawnAuto) this.performAutoSpawn();
     this.preRender(ctx);
 
-    this.timeNow = Date.now();
 
     for (let particle of this.particles) {
       if (!particle.alive) continue;

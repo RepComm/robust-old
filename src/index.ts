@@ -69,6 +69,8 @@ world.loadChunk(1, 0);
 
 scene.add(world);
 
+world.setWeather("rainy", true);
+
 let psBreakBlock = new ParticleSystem();
 psBreakBlock.settings = {
   draw: (ctx, particle)=>{
@@ -95,13 +97,12 @@ function calculateRenderMouseVec () {
   renderMouseVec.divScalar(scene.transform.scale);
 }
 
-const skyColorDelay = 8000;
+const skyColorDelay = 20000;
 const skyColorTrack = new ColorTrack();
-skyColorTrack.setAtTimeRGBA(0*skyColorDelay, 0, 0, 0);
-skyColorTrack.setAtTimeRGBA(1*skyColorDelay, 255, 0, 0);
-skyColorTrack.setAtTimeRGBA(2*skyColorDelay, 0, 255, 0);
-skyColorTrack.setAtTimeRGBA(3*skyColorDelay, 0, 0, 255);
-skyColorTrack.setAtTimeRGBA(4*skyColorDelay, 0, 0, 0);
+skyColorTrack.setAtTimeRGBA(0*skyColorDelay, 50, 53, 66);
+skyColorTrack.setAtTimeRGBA(1*skyColorDelay, 71, 78, 100);
+skyColorTrack.setAtTimeRGBA(2*skyColorDelay, 32, 22, 28);
+skyColorTrack.setAtTimeRGBA(3*skyColorDelay, 50, 53, 66);
 
 const breakBlockCoords = new Vec2();
 
