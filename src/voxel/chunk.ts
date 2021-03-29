@@ -7,18 +7,18 @@ import { Intersectable } from "../physics/intersectable";
 import { BoxList } from "../physics/boxlist";
 import { AABB } from "../physics/aabb";
 
-function randomColor (): string {
+function randomColor(): string {
   let str = Math.floor(Math.random() * 0xffffffff).toString(16);
 
   let zeroes = (8 - str.length);
-  for (let i=0; i<zeroes; i++) {
+  for (let i = 0; i < zeroes; i++) {
     str = "0" + str;
   }
 
   return "#" + str;
 }
 
-export function getBlockColor (type: number): string {
+export function getBlockColor(type: number): string {
   switch (type) {
     case 1: //stone
       return "#222223";
@@ -42,36 +42,38 @@ export class Chunk extends Object2D {
   private indexX: number;
   private indexY: number;
 
-  private boxlist: BoxList;
+  boxlist: BoxList;
   private debugCollision: boolean;
-  
-  constructor () {
+  private debugCollisionVec: Vec2;
+
+  constructor() {
     super();
     this.boxlist = new BoxList();
-    this.debugCollision = true;
-
+    
     this.data = new Uint8Array(
       Chunk.WIDTH *
       Chunk.HEIGHT *
       Chunk.BYTES_PER_BLOCK
-    );
-
+      );
+      
     this.renderBlock = new Block();
     this.collisionBlock = new Block();
+    this.debugCollision = true;
+    this.debugCollisionVec = new Vec2();  
   }
-  static getBlockIndex (x: number, y: number): number {
+  static getBlockIndex(x: number, y: number): number {
     return _2dTo1d(x, y, Chunk.WIDTH);
   }
-  static getBlockX (blockIndex: number): number {
+  static getBlockX(blockIndex: number): number {
     return _1dTo2dX(blockIndex, Chunk.WIDTH);
   }
-  static getBlockY (blockIndex: number): number {
+  static getBlockY(blockIndex: number): number {
     return _1dTo2dY(blockIndex, Chunk.WIDTH);
   }
-  static isBlockIndexValid (index: number): boolean {
+  static isBlockIndexValid(index: number): boolean {
     return index > -1 && index < Chunk.WIDTH * Chunk.HEIGHT;
   }
-  static isBlockXYValid (x: number, y: number): boolean {
+  static isBlockXYValid(x: number, y: number): boolean {
     return (
       x > -1 &&
       x < Chunk.WIDTH &&
@@ -79,34 +81,37 @@ export class Chunk extends Object2D {
       y < Chunk.HEIGHT
     );
   }
-  static blockXToChunkIndexX (x: number): number {
+  static blockXToChunkIndexX(x: number): number {
     return Math.floor(x / Chunk.WIDTH);
   }
-  static blockYToChunkIndexY (y: number): number {
+  static blockYToChunkIndexY(y: number): number {
     return Math.floor(y / Chunk.HEIGHT);
   }
-  static blockWorldXToBlockChunkX (x: number): number {
+  static blockWorldXToBlockChunkX(x: number): number {
     return x % Chunk.WIDTH;
   }
-  static blockWorldYToBlockChunkY (y: number): number {
+  static blockWorldYToBlockChunkY(y: number): number {
     return y % Chunk.HEIGHT;
   }
-  setIndex (x: number, y: number): this {
+  setIndex(x: number, y: number): this {
     this.indexX = x;
     this.indexY = y;
-    this.getTransform().position.set(
+    this.transform.position.set(
       x * Chunk.WIDTH,
       y * Chunk.HEIGHT
     );
+    this.boxlist.offset.copy(this.transform.position);
+    // this.boxlist.offset.x += 0.5;
+    // this.boxlist.offset.y += 0.5;
     return this;
   }
-  getIndexX (): number {
+  getIndexX(): number {
     return this.indexX;
   }
-  getIndexY (): number {
+  getIndexY(): number {
     return this.indexY;
   }
-  getBlock (localX: number, localY: number, out: Block) {
+  getBlock(localX: number, localY: number, out: Block) {
     this.getBlockFromIndex(
       Chunk.getBlockIndex(localX, localY),
       out
@@ -118,19 +123,19 @@ export class Chunk extends Object2D {
    * @param index 
    * @param out 
    */
-  getBlockFromIndex (index: number, out: Block) {
+  getBlockFromIndex(index: number, out: Block) {
     out.type = this.data[index * Chunk.BYTES_PER_BLOCK];
     //TODO - add other material data here
     out.index = index;
   }
-  breakBlock (localX: number, localY: number) {
+  breakBlock(localX: number, localY: number) {
     this.renderBlock.type = 0;
     this.setBlock(localX, localY, this.renderBlock);
   }
   setBlock(localX: number, localY: number, block: Block) {
     this.setBlockFromIndex(Chunk.getBlockIndex(localX, localY), block);
   }
-  setBlockFromIndex (index: number, block: Block) {
+  setBlockFromIndex(index: number, block: Block) {
     this.data[index * Chunk.BYTES_PER_BLOCK] = block.type;
   }
   render(ctx: CanvasRenderingContext2D): this {
@@ -138,8 +143,8 @@ export class Chunk extends Object2D {
 
     let idx = 0;
 
-    for (let x = 0; x< Chunk.WIDTH; x++) {
-      for (let y = 0; y< Chunk.HEIGHT; y++) {
+    for (let x = 0; x < Chunk.WIDTH; x++) {
+      for (let y = 0; y < Chunk.HEIGHT; y++) {
         //get the current block
         idx = Chunk.getBlockIndex(x, y);
         this.getBlockFromIndex(idx, this.renderBlock);
@@ -152,30 +157,33 @@ export class Chunk extends Object2D {
       }
     }
 
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 0.01;
-    for (let box of this.boxlist.boxes) {
-      ctx.strokeRect(
-        box.position.x,
-        box.position.y,
-        box.halfExtents.x*2,
-        box.halfExtents.y*2
-      );
+    if (this.debugCollision) {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 0.01;
+      for (let box of this.boxlist.boxes) {
+
+        ctx.strokeRect(
+          box.position.x-box.halfExtents.x,
+          box.position.y-box.halfExtents.y,
+          box.halfExtents.x * 2,
+          box.halfExtents.y * 2
+        );
+      }
     }
-    
+
     this.renderChildren(ctx);
     this.postRender(ctx);
 
     return this;
   }
-  calculateCollision () {
+  calculateCollision() {
     //reset collision
     this.boxlist.clear();
 
     let box: AABB;
 
-    for (let x=0; x<Chunk.WIDTH; x++) {
-      for (let y=0; y<Chunk.HEIGHT; y++) {
+    for (let x = 0; x < Chunk.WIDTH; x++) {
+      for (let y = 0; y < Chunk.HEIGHT; y++) {
         //calculate current block
         this.getBlock(x, y, this.collisionBlock);
 
@@ -183,12 +191,13 @@ export class Chunk extends Object2D {
         if (this.collisionBlock.type !== 0) {
           //If we need a separate collision box
           if (!box) {
-            box = this.boxlist.boxAt(x, y, 1, 1);
+            box = this.boxlist.boxAt(x+0.5, y+0.5, 1, 1);
           } else {
             //otherwise extend the last one (it gets reset for blocks with no collision)
-            box.halfExtents.y +=0.5;
+            // box.halfExtents.y += 0.5;
+            AABB.extend(box, 0, 0, 0, 1);
           }
-        //If the block has no collision
+          //If the block has no collision
         } else {
           //reset box so we'll need a new one in future in this column
           box = undefined;
@@ -197,6 +206,8 @@ export class Chunk extends Object2D {
       //reset block at end
       box = undefined;
     }
+
+    // console.log(this.boxlist.getBoxCount(), "boxes");
   }
 }
 Chunk.WIDTH = 16;

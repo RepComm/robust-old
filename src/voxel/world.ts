@@ -21,7 +21,7 @@ export interface WeatherMode {
 }
 
 export class World extends Object2D {
-  private chunks: Set<Chunk>;
+  chunks: Set<Chunk>;
   private inactiveChunks: Set<Chunk>;
 
   private generateBlock: Block;
@@ -164,6 +164,11 @@ export class World extends Object2D {
         } else {
           this.generateBlock.type = 1;
         }
+        // if (Math.random() > 0.5) {
+        //   this.generateBlock.type = 1;
+        // } else {
+        //   this.generateBlock.type = 0;
+        // }
         chunk.setBlock(x, y, this.generateBlock);
       }
     }
@@ -232,7 +237,7 @@ export class World extends Object2D {
     return true;
   }
   /**Returns false if cancelled or otherwise couldn't set block*/
-  setBlock (x: number, y: number, block: Block, doEvent: boolean = true): boolean {
+  setBlock (x: number, y: number, block: Block, doEvent: boolean = true, doParticle: boolean = true, recalcCollision: boolean = true): boolean {
     this.setBlockCurrent.copy(block);
 
     if (!this.getBlock(x, y, this.setBlockPrevious)) return false;
@@ -253,14 +258,16 @@ export class World extends Object2D {
     //Use index method as it is most efficient
     this.cachedChunk.setBlockFromIndex(this.setBlockPrevious.index, this.setBlockCurrent);
 
-    //Play particle
-    this.psBlockSet.spawnParticle(
-      x+0.5,
-      y+0.5,
-      0, 0, this.setBlockPrevious.type
-    );
+    if (doParticle) {
+      //Play particle
+      this.psBlockSet.spawnParticle(
+        x+0.5,
+        y+0.5,
+        0, 0, this.setBlockPrevious.type
+      );
+    }
     
-    this.cachedChunk.calculateCollision();
+    if (recalcCollision) this.cachedChunk.calculateCollision();
     return true;
   }
   clearWeather (): this {

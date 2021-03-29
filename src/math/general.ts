@@ -15,6 +15,10 @@ export const lerp = (from: number, to: number, by: number): number => {
 /**Performs the inverse of lerp
  * Will give you the interpolant given the interpolated number and its bounds (to and from)
  */
- export const inverseLerp = (from: number, to: number, value: number): number => {
+export const inverseLerp = (from: number, to: number, value: number): number => {
   return (value - from) / (to - from);
+}
+
+export function sign(value: number): number {
+  return value < 0 ? -1 : 1;
 }

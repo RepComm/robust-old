@@ -3,19 +3,31 @@ import { AABB } from "./aabb";
 import { Intersectable } from "./intersectable";
 
 export class BoxList implements Intersectable {
+  offset: Vec2;
   private inactiveBoxes: Set<AABB>;
   boxes: Set<AABB>;
+
+  private calcBoxOffset: Vec2;
 
   constructor () {
     this.inactiveBoxes = new Set();
     this.boxes = new Set();
+    this.offset = new Vec2();
+    this.calcBoxOffset = new Vec2();
   }
   /**Test if an aabb intersects this box list*/
   intersects(other: AABB, contactOut?: Vec2): boolean {
     let result = false;
 
     for (let box of this.boxes) {
-      if (box.intersects(other, contactOut)) {
+      //same as box.position, with overall offset of boxlist object
+      this.calcBoxOffset.copy(box.position).add(this.offset);
+
+      if (AABB.intersects(
+        this.calcBoxOffset, box.halfExtents,
+        other.position, other.halfExtents,
+        contactOut)
+      ) {
         result = true;
         break;
       }

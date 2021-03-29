@@ -11,6 +11,7 @@ import { World, WorldBlockEvent } from "./voxel/world";
 import { Track } from "./anim/anim";
 import { ColorTrack } from "./math/color";
 import { EventDispatcher } from "./events/event";
+import { Player } from "./player/player";
 
 runOnce();
 
@@ -45,7 +46,7 @@ const renderer = new Drawing({alpha: false})
 
 const input = GameInput.get();
 function setupInput () {
-  input.createAxis("walk")
+  input.createAxis("horizontal")
   .addInfluence({
     keys: ["a"],
     value: -1
@@ -57,6 +58,16 @@ function setupInput () {
   .addInfluence({
     keys: [" "]
   });
+  input.createAxis("vertical")
+  .addInfluence({
+    keys: ["w"],
+    value: 1
+  })
+  .addInfluence({
+    keys: ["s"],
+    value: -1
+  });
+
   input.createButton("break")
   .addInfluence({
     mouseButtons: [0]
@@ -71,12 +82,16 @@ const scene = new Scene2D();
 scene.getTransform().scale = BLOCK_SIZE_PX;
 
 const world = new World();
-world.loadChunk(0, 0);
 world.loadChunk(1, 0);
+// world.loadChunk(1, 0);
 
 scene.add(world);
 
 world.setWeather("rainy", true);
+
+const player = new Player();
+player.transform.position.set(6, 6);
+scene.add(player);
 
 const renderMouseVec = new Vec2();
 function calculateRenderMouseVec () {
@@ -95,6 +110,8 @@ skyColorTrack.setAtTimeRGBA(2*skyColorDelay, 32, 22, 28);
 skyColorTrack.setAtTimeRGBA(3*skyColorDelay, 50, 53, 66);
 
 const mouseBlockCoords = new Vec2();
+const playerMoveVec = new Vec2();
+const playerMoveSpeed = 0.2;
 const mouseRadius = 4;
 renderer.addRenderPass((ctx, drawing)=>{
   skyColorTrack.render(Date.now()%skyColorTrack.duration);
@@ -103,6 +120,21 @@ renderer.addRenderPass((ctx, drawing)=>{
   ctx.fillRect(0, 0, drawing.width, drawing.height);
   
   scene.render(ctx);
+
+  playerMoveVec.set(
+    input.getAxisValue("horizontal")*playerMoveSpeed,
+    input.getAxisValue("vertical")*-playerMoveSpeed
+  );
+
+  player.transform.position.add(playerMoveVec);
+
+  for (let chunk of world.chunks) {
+    player.isOnGround = chunk.boxlist.intersects(player.aabb, player.contactPoint);
+    if (player.isOnGround){
+      // console.log(player.transform.position.x, player.transform.position.y);
+      break;
+    }
+  }
 
   calculateRenderMouseVec();
 
