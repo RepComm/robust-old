@@ -1,8 +1,9 @@
 
-import { Object2D, Vec2 } from "@repcomm/scenario2d";
+import { Vec2 } from "@repcomm/scenario2d";
 import { AABB } from "../physics/aabb";
+import { PhysicsObject2D } from "../physics/pobj";
 
-export class Player extends Object2D {
+export class Player extends PhysicsObject2D {
   aabb: AABB;
   debugDraw: boolean;
   contactPoint: Vec2;
@@ -21,7 +22,6 @@ export class Player extends Object2D {
   }
 
   render(ctx: CanvasRenderingContext2D): this {
-
     this.preRender(ctx);
 
     ctx.lineWidth = 0.05;

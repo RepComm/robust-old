@@ -12,6 +12,7 @@ import { Track } from "./anim/anim";
 import { ColorTrack } from "./math/color";
 import { EventDispatcher } from "./events/event";
 import { Player } from "./player/player";
+import { Physics } from "./physics/pobj";
 
 runOnce();
 
@@ -126,11 +127,22 @@ renderer.addRenderPass((ctx, drawing)=>{
     input.getAxisValue("vertical")*-playerMoveSpeed
   );
 
-  player.transform.position.add(playerMoveVec);
+  player.addVelocity(playerMoveVec);
 
   for (let chunk of world.chunks) {
     player.isOnGround = chunk.boxlist.intersects(player.aabb, player.contactPoint);
-    if (player.isOnGround){
+    if (player.isOnGround) {
+      playerMoveVec
+      .copy(player.velocity)
+      .mulScalar(-0.8);
+      player.addVelocity(playerMoveVec);
+
+      playerMoveVec
+      .copy(player.contactPoint)
+      .sub(player.transform.position)
+      .normalize()
+      .mulScalar(-0.9);
+      player.addVelocity(playerMoveVec);
       // console.log(player.transform.position.x, player.transform.position.y);
       break;
     }
@@ -156,6 +168,11 @@ renderer.addRenderPass((ctx, drawing)=>{
   }
 });
 
+const physics = Physics.get();
+
+const fps = 15;
+
 setInterval(()=>{
+  physics.step(1/fps);
   renderer.setNeedsRedraw();
-}, 1000/15);
+}, 1000/fps);
