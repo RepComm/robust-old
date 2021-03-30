@@ -19,6 +19,7 @@ export class Player extends PhysicsObject2D {
     this.contactPoint = new Vec2();
 
     this.isOnGround = false;
+    this.slidingFriction = 0.2;
   }
 
   render(ctx: CanvasRenderingContext2D): this {
@@ -26,11 +27,13 @@ export class Player extends PhysicsObject2D {
 
     ctx.lineWidth = 0.05;
 
-    if (this.isOnGround) {
-      ctx.strokeStyle = "#ff0000";
-    } else {
-      ctx.strokeStyle = "#ffffff";
-    }
+    ctx.strokeStyle = "#ffffff";
+
+    // if (this.isOnGround) {
+    //   ctx.strokeStyle = "#ff0000";
+    // } else {
+    //   ctx.strokeStyle = "#ffffff";
+    // }
 
     ctx.strokeRect(
       -this.aabb.halfExtents.x,

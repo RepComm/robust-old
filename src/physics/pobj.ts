@@ -12,7 +12,7 @@ export class Physics {
     this.objects = new Set();
     this.deltaVector = new Vec2();
     this.gravity = new Vec2();
-    this.gravity.set(0, 0.098);
+    this.gravity.set(0, 0.5);
   }
   static get (): Physics {
     if (!Physics.SINGLETON) Physics.SINGLETON = new Physics();
@@ -53,11 +53,13 @@ export class PhysicsObject2D extends Object2D {
   isDynamic: boolean;
   velocity: Vec2;
   drag: number;
+  slidingFriction: number;
   constructor () {
     super();
     this.velocity = new Vec2();
     this.isDynamic = true;
     this.drag = 0;
+    this.slidingFriction = 0;
     physics.add(this);
   }
   setVelocity (vec: Vec2): this {

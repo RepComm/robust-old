@@ -83,15 +83,15 @@ const scene = new Scene2D();
 scene.getTransform().scale = BLOCK_SIZE_PX;
 
 const world = new World();
+world.loadChunk(0, 0);
 world.loadChunk(1, 0);
-// world.loadChunk(1, 0);
 
 scene.add(world);
 
 world.setWeather("rainy", true);
 
 const player = new Player();
-player.transform.position.set(6, 6);
+player.transform.position.set(6, 0);
 scene.add(player);
 
 const renderMouseVec = new Vec2();
@@ -124,7 +124,7 @@ renderer.addRenderPass((ctx, drawing)=>{
 
   playerMoveVec.set(
     input.getAxisValue("horizontal")*playerMoveSpeed,
-    input.getAxisValue("vertical")*-playerMoveSpeed
+    0
   );
 
   player.addVelocity(playerMoveVec);
@@ -132,11 +132,11 @@ renderer.addRenderPass((ctx, drawing)=>{
   for (let chunk of world.chunks) {
     player.isOnGround = chunk.boxlist.intersects(player.aabb, player.contactPoint);
     if (player.isOnGround) {
-      playerMoveVec
-      .copy(player.velocity)
-      .mulScalar(-0.8);
-      player.addVelocity(playerMoveVec);
-
+      if (player.velocity.y > 0) {
+        playerMoveVec.set(-player.velocity.x*player.slidingFriction, -player.velocity.y);
+        // .mulScalar(-0.8);
+        player.addVelocity(playerMoveVec);
+      }
       playerMoveVec
       .copy(player.contactPoint)
       .sub(player.transform.position)
@@ -144,6 +144,11 @@ renderer.addRenderPass((ctx, drawing)=>{
       .mulScalar(-0.9);
       player.addVelocity(playerMoveVec);
       // console.log(player.transform.position.x, player.transform.position.y);
+
+      if (input.getAxisValue("vertical") > 0.1) {
+        playerMoveVec.set(0, -10);
+        player.addVelocity(playerMoveVec);
+      }
       break;
     }
   }
@@ -170,7 +175,7 @@ renderer.addRenderPass((ctx, drawing)=>{
 
 const physics = Physics.get();
 
-const fps = 15;
+const fps = 60;//15;
 
 setInterval(()=>{
   physics.step(1/fps);

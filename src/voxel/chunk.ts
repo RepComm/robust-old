@@ -58,7 +58,7 @@ export class Chunk extends Object2D {
       
     this.renderBlock = new Block();
     this.collisionBlock = new Block();
-    this.debugCollision = true;
+    this.debugCollision = false;
     this.debugCollisionVec = new Vec2();  
   }
   static getBlockIndex(x: number, y: number): number {
