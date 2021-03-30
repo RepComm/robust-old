@@ -152,13 +152,14 @@ renderer.addRenderPass((ctx, drawing)=>{
       .copy(player.contactPoint)
       .sub(player.transform.position)
       .normalize()
-      .mulScalar(-0.9);
+      .mulScalar(-1);
       player.addVelocity(playerMoveVec);
       // console.log(player.transform.position.x, player.transform.position.y);
 
-      if (input.getAxisValue("vertical") > 0.1) {
+      if (player.canJump() && input.getAxisValue("vertical") > 0.1) {
         playerMoveVec.set(0, -10);
         player.addVelocity(playerMoveVec);
+        player.jumpLast = Date.now();
       }
       break;
     }

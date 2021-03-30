@@ -9,6 +9,8 @@ export class Player extends PhysicsObject2D {
   contactPoint: Vec2;
 
   isOnGround: boolean;
+  jumpDelay: number;
+  jumpLast: number;
 
   constructor() {
     super();
@@ -19,7 +21,9 @@ export class Player extends PhysicsObject2D {
     this.contactPoint = new Vec2();
 
     this.isOnGround = false;
-    this.slidingFriction = 0.2;
+    this.slidingFriction = 0.1;
+    this.jumpDelay = 400;
+    this.jumpLast = 0;
   }
 
   render(ctx: CanvasRenderingContext2D): this {
@@ -49,16 +53,19 @@ export class Player extends PhysicsObject2D {
       this.aabb.halfExtents.y
     );
 
-    ctx.strokeRect(
-      this.contactPoint.x - this.transform.position.x,
-      this.contactPoint.y - this.transform.position.y,
-      0.2,
-      0.2
-    );
+    // ctx.strokeRect(
+    //   this.contactPoint.x - this.transform.position.x,
+    //   this.contactPoint.y - this.transform.position.y,
+    //   0.2,
+    //   0.2
+    // );
 
     this.renderChildren(ctx);
     this.postRender(ctx);
 
     return this;
+  }
+  canJump (): boolean {
+    return Date.now() - this.jumpLast > this.jumpDelay;
   }
 }
