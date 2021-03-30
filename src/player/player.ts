@@ -41,6 +41,13 @@ export class Player extends PhysicsObject2D {
       this.aabb.halfExtents.x*2,
       this.aabb.halfExtents.y*2
     );
+    ctx.fillStyle = "white";
+    ctx.font = `${0.5}px courier`;
+    ctx.fillText(
+      `${Math.floor(this.transform.position.x)}, ${Math.floor(this.transform.position.y)}`,
+      this.aabb.halfExtents.x,
+      this.aabb.halfExtents.y
+    );
 
     ctx.strokeRect(
       this.contactPoint.x - this.transform.position.x,

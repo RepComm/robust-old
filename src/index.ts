@@ -94,15 +94,6 @@ const player = new Player();
 player.transform.position.set(6, 0);
 scene.add(player);
 
-const renderMouseVec = new Vec2();
-function calculateRenderMouseVec () {
-  renderMouseVec.set(
-    input.raw.getPointerX(),
-    input.raw.getPointerY()
-  );
-  renderMouseVec.divScalar(scene.transform.scale);
-}
-
 const skyColorDelay = 20000;
 const skyColorTrack = new ColorTrack();
 skyColorTrack.setAtTimeRGBA(0*skyColorDelay, 50, 53, 66);
@@ -114,7 +105,27 @@ const mouseBlockCoords = new Vec2();
 const playerMoveVec = new Vec2();
 const playerMoveSpeed = 0.2;
 const mouseRadius = 4;
+
+const sceneCameraOffset = new Vec2();
+
+const renderMouseVec = new Vec2();
+function calculateRenderMouseVec () {
+  renderMouseVec.set(
+    input.raw.getPointerX(),
+    input.raw.getPointerY()
+  ).sub(sceneCameraOffset);
+  renderMouseVec.divScalar(scene.transform.scale);
+}
+
 renderer.addRenderPass((ctx, drawing)=>{
+  sceneCameraOffset
+  .copy(player.transform.position)
+  .mulScalar(-BLOCK_SIZE_PX);
+  sceneCameraOffset.x += drawing.width/2;
+  sceneCameraOffset.y += drawing.height/2;
+
+  scene.transform.position.copy(sceneCameraOffset);
+
   skyColorTrack.render(Date.now()%skyColorTrack.duration);
 
   ctx.fillStyle = skyColorTrack.toString();
