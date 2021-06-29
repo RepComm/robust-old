@@ -1,38 +1,43 @@
-import { Vec2 } from "@repcomm/scenario2d";
-import { AABB } from "./aabb";
-import { Intersectable } from "./intersectable";
 
-export class BoxList implements Intersectable {
+import { Vec2 } from "@repcomm/scenario2d";
+import { AABB } from "@repcomm/kissbb";
+
+export class BoxList {
   offset: Vec2;
   private inactiveBoxes: Set<AABB>;
   boxes: Set<AABB>;
 
   private calcBoxOffset: Vec2;
 
+  private placeHolder: Vec2;
+
   constructor () {
     this.inactiveBoxes = new Set();
     this.boxes = new Set();
     this.offset = new Vec2();
     this.calcBoxOffset = new Vec2();
+    this.placeHolder = new Vec2();
   }
+
   /**Test if an aabb intersects this box list*/
-  intersects(other: AABB, contactOut?: Vec2): boolean {
+  intersects(other: AABB, outNormal: Vec2): number {
     let result = false;
+    let time = 1;
 
     for (let box of this.boxes) {
       //same as box.position, with overall offset of boxlist object
       this.calcBoxOffset.copy(box.position).add(this.offset);
 
-      if (AABB.intersects(
-        this.calcBoxOffset, box.halfExtents,
-        other.position, other.halfExtents,
-        contactOut)
-      ) {
-        result = true;
-        break;
+      this.placeHolder.copy(box.position);
+
+      box.position.copy(this.calcBoxOffset);
+      time = AABB.sweep(other, box, outNormal);
+      box.position.copy(this.placeHolder);
+      if (time < 1.0) {
+        return time;
       }
     }
-    return result;
+    return 1;
   }
   /**Get a box from the inactive set (recycled boxes)*/
   getInactiveBox (): AABB {
@@ -68,7 +73,8 @@ export class BoxList implements Intersectable {
   boxAt (x: number, y: number, w: number, h: number): AABB {
     let result = this.acquireBox();
     result.position.set(x, y);
-    result.halfExtents.set(w/2, h/2);
+
+    result.size.set(w, h);
     this.setBoxActivated(result);
     return result;
   }

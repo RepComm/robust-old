@@ -20,7 +20,7 @@
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "copy-webpack-plugin": "^6.2.1",
-    "webpack": "^4.44.2",
+    "webpack": "^5.41.0",
     "webpack-cli": "^3.3.12"
   },
   "private": true,
@@ -37,6 +37,7 @@
   "dependencies": {
     "@repcomm/exponent-ts": "^1.1.4",
     "@repcomm/gameinput-ts": "^1.9.5",
-    "@repcomm/scenario2d": "^1.0.19"
+    "@repcomm/kissbb": "^1.1.0",
+    "@repcomm/scenario2d": "^1.1.1"
   }
 }

@@ -3,9 +3,8 @@ import { Object2D, Vec2 } from "@repcomm/scenario2d";
 import { Block } from "./block";
 import { _1dTo2dX, _1dTo2dY, _2dTo1d } from "../math/general";
 
-import { Intersectable } from "../physics/intersectable";
 import { BoxList } from "../physics/boxlist";
-import { AABB } from "../physics/aabb";
+import { AABB } from "@repcomm/kissbb";
 
 function randomColor(): string {
   let str = Math.floor(Math.random() * 0xffffffff).toString(16);
@@ -58,7 +57,7 @@ export class Chunk extends Object2D {
       
     this.renderBlock = new Block();
     this.collisionBlock = new Block();
-    this.debugCollision = false;
+    this.debugCollision = true;
     this.debugCollisionVec = new Vec2();  
   }
   static getBlockIndex(x: number, y: number): number {
@@ -163,10 +162,10 @@ export class Chunk extends Object2D {
       for (let box of this.boxlist.boxes) {
 
         ctx.strokeRect(
-          box.position.x-box.halfExtents.x,
-          box.position.y-box.halfExtents.y,
-          box.halfExtents.x * 2,
-          box.halfExtents.y * 2
+          box.position.x,
+          box.position.y,
+          box.size.x,
+          box.size.y
         );
       }
     }
@@ -191,7 +190,7 @@ export class Chunk extends Object2D {
         if (this.collisionBlock.type !== 0) {
           //If we need a separate collision box
           if (!box) {
-            box = this.boxlist.boxAt(x+0.5, y+0.5, 1, 1);
+            box = this.boxlist.boxAt(x, y, 1, 1);
           } else {
             //otherwise extend the last one (it gets reset for blocks with no collision)
             // box.halfExtents.y += 0.5;

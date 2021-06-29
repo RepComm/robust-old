@@ -137,30 +137,33 @@ renderer.addRenderPass((ctx, drawing)=>{
     input.getAxisValue("horizontal")*playerMoveSpeed,
     0
   );
-
+  
+  playerMoveVec.mulScalar(Physics.SINGLETON.delta);
   player.addVelocity(playerMoveVec);
 
-  for (let chunk of world.chunks) {
-    player.isOnGround = chunk.boxlist.intersects(player.aabb, player.contactPoint);
-    if (player.isOnGround) {
-      if (player.velocity.y > 0) {
-        playerMoveVec.set(-player.velocity.x*player.slidingFriction, -player.velocity.y);
-        // .mulScalar(-0.8);
-        player.addVelocity(playerMoveVec);
-      }
-      playerMoveVec
-      .copy(player.contactPoint)
-      .sub(player.transform.position)
-      .normalize()
-      .mulScalar(-1);
-      player.addVelocity(playerMoveVec);
-      // console.log(player.transform.position.x, player.transform.position.y);
+  player.aabb.position.copy(player.transform.position);
+  player.aabb.velocity.copy(player.velocity);
 
+  let dotprod = 0;
+  let collisiontime = 1;
+  let remainingtime = 0;
+
+  for (let chunk of world.chunks) {
+    collisiontime = chunk.boxlist.intersects(player.aabb, player.contactPoint);
+    remainingtime = 1.0 - collisiontime;
+    player.isOnGround = collisiontime < 1;
+
+    if (player.isOnGround) {
+      
       if (player.canJump() && input.getAxisValue("vertical") > 0.1) {
         playerMoveVec.set(0, -10);
+        playerMoveVec.mulScalar(Physics.SINGLETON.delta);
         player.addVelocity(playerMoveVec);
         player.jumpLast = Date.now();
       }
+
+      dotprod = (player.velocity.x * player.contactPoint.y + player.velocity.y * player.contactPoint.x) * remainingtime; 
+      player.velocity.set(dotprod * player.contactPoint.y, dotprod * player.contactPoint.x);
       break;
     }
   }

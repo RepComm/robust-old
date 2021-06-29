@@ -8,17 +8,21 @@ export class Physics {
 
   private gravity: Vec2;
 
+  delta: number;
+
   private constructor () {
     this.objects = new Set();
     this.deltaVector = new Vec2();
     this.gravity = new Vec2();
-    this.gravity.set(0, 0.5);
+    this.gravity.set(0, 0.098);
+    this.delta = 0;
   }
   static get (): Physics {
     if (!Physics.SINGLETON) Physics.SINGLETON = new Physics();
     return Physics.SINGLETON;
   }
   step (delta: number): this {
+    this.delta = delta;
     for (let object of this.objects) {
       if(!object.isDynamic) continue;
 
@@ -27,16 +31,18 @@ export class Physics {
       //drag
       if (object.drag > 0) object.velocity.mulScalar(object.drag);
 
-      //gravity
-      object.velocity.add(this.gravity);
+      this.deltaVector.copy(this.gravity);
+      this.deltaVector.mulScalar(this.delta);
 
+      //gravity
+      object.velocity.add(this.deltaVector);
 
       //Account for delta time
-      this.deltaVector.copy(object.velocity);
-      this.deltaVector.mulScalar(delta);
+      // this.deltaVector.copy(object.velocity);
+      // this.deltaVector.mulScalar(delta);
 
       //velocity to object transform
-      object.transform.position.add(this.deltaVector);
+      object.transform.position.add(object.velocity);
     }
 
     return this;
