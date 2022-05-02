@@ -1,18 +1,19 @@
-# ts-esm-babel-template
-Because I don't want to look up the preset-env arguments<br/>
-and guess for two hours until getting it right, again.
+# ts-map-babel-template
+
+A template setup for:
+- TypeScript ( using [babel](https://github.com/babel/babel) )
+- import maps ( including [this polyfill](https://github.com/guybedford/es-module-shims) )
+- And also optionally [show-casing exponent-ts](https://github.com/RepComm/exponent-ts)
 
 ## Function
-This repo is set up to use babel 7^<br/>
-to compile typescript to javascript esmodules<br/>
 
-Simply run:
-`npm run build` or `./build.sh`
+Compile /src directory with:
+`npm run build`
+<br/>
+File copy is set up as well for:
+`src/index.ts` -> `./index.js`<br/>
+`src/index.html` -> `./index.html`
 
-File copy is set up as well.
+Output is in the same directory as package.json for sake of import maps
 
-`src/index.ts` -> `lib/index.js`<br/>
-`src/index.html` -> `lib/index.html`
-
-If you feel this template could be made better,<br/>
-submit a PR and I'll merge if its pretty + works :)
+I regularly use this for starting new projects of my own, and therefor it should stay somewhat up-to-date.
