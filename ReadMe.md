@@ -1,19 +1,14 @@
-# ts-map-babel-template
+# robust-ts
 
-A template setup for:
-- TypeScript ( using [babel](https://github.com/babel/babel) )
-- import maps ( including [this polyfill](https://github.com/guybedford/es-module-shims) )
-- And also optionally [show-casing exponent-ts](https://github.com/RepComm/exponent-ts)
+## Notice
+Reimplementation going on.<br/>
+Physics engine will be a custom one since others are trash.
 
-## Function
+## Random Implementation Notes:
+- Render and physics coordinate spaces are 1:1 match
+- Positive X is right, Positive Y is down
+- Block base screen size is 32x32 (not accounting for zoom), however, they span 1x1 meters in render space
+- Chunks are 16x16 blocks
+- AABB is not implemented as a class, but rather as a set of functions
 
-Compile /src directory with:
-`npm run build`
-<br/>
-File copy is set up as well for:
-`src/index.ts` -> `./index.js`<br/>
-`src/index.html` -> `./index.html`
-
-Output is in the same directory as package.json for sake of import maps
-
-I regularly use this for starting new projects of my own, and therefor it should stay somewhat up-to-date.
+![img](./example.gif)

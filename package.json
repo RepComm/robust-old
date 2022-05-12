@@ -1,11 +1,11 @@
 {
-  "name": "ts-map-babel-template",
+  "name": "robust",
   "version": "1.0.0",
-  "description": "TypeScript, ES Modules, import map, import map polyfill, and babel",
+  "description": "Shoot-em-up 2d voxel game",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RepComm/ts-map-babel-template.git"
+    "url": "git+https://github.com/RepComm/robust.git"
   },
   "keywords": [
     "typescript",
@@ -16,9 +16,9 @@
   "author": "Jonathan Crowder",
   "license": "Unlicense",
   "bugs": {
-    "url": "https://github.com/RepComm/ts-map-babel-template/issues"
+    "url": "https://github.com/RepComm/robust/issues"
   },
-  "homepage": "https://github.com/RepComm/ts-map-babel-template#readme",
+  "homepage": "https://github.com/RepComm/robust#readme",
   "devDependencies": {
     "@babel/cli": "^7.13.16",
     "@babel/core": "^7.14.0",
@@ -29,6 +29,10 @@
     "build": "babel src --extensions .ts --copy-files -d ."
   },
   "dependencies": {
-    "@repcomm/exponent-ts": "^1.1.9"
+    "@dimforge/rapier2d": "^0.8.0-alpha.2",
+    "@repcomm/exponent-ts": "^1.1.9",
+    "@repcomm/gameinput-ts": "^1.10.4",
+    "@repcomm/kissbb": "^1.1.1",
+    "@repcomm/scenario2d": "^1.1.2"
   }
 }
